@@ -994,9 +994,13 @@ class TradingScanner:
         "M5":   900,  # 15 min — ventana para que M1 entre
     }
 
-    # Tiempo máximo que una señal puede estar ACTIVE antes de auto-expirar
+    # Tiempo máximo que una señal puede estar ACTIVE antes de auto-expirar.
+    # H4/D1 apuntan a objetivos de varios días (TP3 = 2-2.5x ATR del timeframe)
+    # — expirarlas en 12h las mataba antes de que pudieran moverse. Ver
+    # análisis 2026-06-18: 48/73 señales históricas se cancelaron en ~0 pips
+    # por este límite, no por la estrategia en sí.
     _MAX_SIGNAL_AGE_MIN: dict[str, int] = {
-        "M1": 20, "M5": 45, "M15": 90, "H1": 360, "H4": 720, "D1": 720,
+        "M1": 20, "M5": 45, "M15": 90, "H1": 480, "H4": 2880, "D1": 10080,
     }
 
     # Límites ATR para SL estructural por TF: (min_mult, max_mult)
@@ -1476,7 +1480,12 @@ class TradingScanner:
                 self.telegram.send_result_summary(self.config, last)
         except Exception:
             pass
-        # 2. Buscar siguiente señal
+        # 2. Buscar siguiente señal — solo si el símbolo sigue activo hoy
+        #    (evita que una EURUSD vieja siga regenerándose tras quitarla
+        #    del set entre semana, o que cripto se cuele fuera de fin de semana).
+        if symbol.upper() not in {s.upper() for s in self._active_symbols()}:
+            logger.info("Rescan omitido para %s — no está en los símbolos activos hoy", symbol)
+            return
         try:
             timeframes = self.trading_cfg.get("timeframes", ["H1", "H4"])
             for tf in timeframes:
