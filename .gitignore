@@ -1,0 +1,11 @@
+config.json
+*.db
+*.log
+scanner_log.txt
+scanner_new.log
+scanner_out.log
+news_cache.json
+__pycache__/
+*.pyc
+.venv/
+venv/

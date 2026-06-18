@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SCANNER PRO</title>
+<style>
+  :root {
+    --bg-0: #0b0f1a;
+    --bg-1: #1a1a2e;
+    --bg-2: #16213e;
+    --bg-3: #0f3460;
+    --gold: #f0a500;
+    --green: #00ff88;
+    --red: #ff3b5c;
+    --yellow: #ffd166;
+    --text: #e6e6f0;
+    --text-dim: #9aa0b4;
+    --border: rgba(255,255,255,0.06);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: linear-gradient(180deg, var(--bg-0), var(--bg-1));
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    min-height: 100vh;
+  }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 16px 24px;
+    background: var(--bg-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-weight: 800; font-size: 22px; letter-spacing: 2px;
+    color: var(--gold);
+  }
+  .header-right { display: flex; gap: 24px; align-items: center; font-size: 14px; }
+  .session-badge {
+    padding: 6px 12px; border-radius: 12px; font-weight: 600; font-size: 12px;
+    background: var(--bg-3); color: var(--text);
+  }
+  .session-london { background: #2c3e50; color: #fff; }
+  .session-newyork { background: #8b3a3a; color: #fff; }
+  .session-asia { background: #4a3a8b; color: #fff; }
+  .session-overlap { background: var(--gold); color: #111; }
+  .session-off { background: #2a2a3a; color: var(--text-dim); }
+
+  .status-bar {
+    display: flex; gap: 24px; align-items: center;
+    padding: 10px 24px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .status-item { display: flex; align-items: center; gap: 6px; color: var(--text-dim); }
+  .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--red); display: inline-block; }
+  .status-dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; padding: 16px 24px;
+  }
+  .stat-card {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+  .stat-value { font-size: 24px; font-weight: 700; margin-top: 4px; color: var(--gold); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.red { color: var(--red); }
+
+  main {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+    padding: 0 24px 24px 24px;
+  }
+  .panel {
+    background: var(--bg-2); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 12px 16px; font-weight: 700; font-size: 13px;
+    text-transform: uppercase; letter-spacing: 1px;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--gold);
+  }
+  .btn {
+    background: var(--bg-3); color: var(--text); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .btn:hover { background: var(--gold); color: #111; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { color: var(--text-dim); text-transform: uppercase; font-size: 10px; letter-spacing: 1px; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10.5px;
+    font-weight: 700; text-transform: uppercase;
+  }
+  .badge-active { background: rgba(255,209,102,0.15); color: var(--yellow); }
+  .badge-tp1 { background: rgba(0,255,136,0.10); color: #7cf2b6; }
+  .badge-tp2 { background: rgba(0,255,136,0.20); color: var(--green); }
+  .badge-tp3 { background: rgba(0,255,136,0.35); color: #00cc6a; }
+  .badge-sl { background: rgba(255,59,92,0.18); color: var(--red); }
+  .badge-cancelled { background: rgba(160,160,180,0.18); color: var(--text-dim); }
+  .badge-buy { background: rgba(0,255,136,0.15); color: var(--green); }
+  .badge-sell { background: rgba(255,59,92,0.15); color: var(--red); }
+
+  .news-item {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; gap: 10px;
+  }
+  .news-title { font-size: 13px; font-weight: 600; }
+  .news-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .news-countdown { font-size: 12px; color: var(--gold); font-weight: 700; white-space: nowrap; }
+  .news-impact-high { color: var(--red); }
+  .news-impact-medium { color: var(--yellow); }
+
+  .chart-wrap { padding: 12px 16px; }
+  canvas { width: 100%; height: 140px; background: var(--bg-1); border-radius: 6px; }
+
+  .history-section { grid-column: 1 / -1; }
+
+  #toast-container {
+    position: fixed; top: 20px; right: 20px; z-index: 1000;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .toast {
+    background: var(--bg-2); border-left: 4px solid var(--gold);
+    padding: 12px 16px; border-radius: 6px;
+    min-width: 260px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    animation: slidein 0.3s ease-out;
+  }
+  .toast.buy { border-left-color: var(--green); }
+  .toast.sell { border-left-color: var(--red); }
+  .toast-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+  .toast-body { font-size: 12px; color: var(--text-dim); }
+  @keyframes slidein { from { transform: translateX(120%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  @media (max-width: 1024px) {
+    main { grid-template-columns: 1fr; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">SCANNER PRO</div>
+  <div class="header-right">
+    <span id="symbols">XAUUSD · EURUSD</span>
+    <span id="session-badge" class="session-badge session-off">Session: ...</span>
+    <span id="utc-clock">--:--:-- UTC</span>
+  </div>
+</header>
+
+<div class="status-bar">
+  <div class="status-item"><span id="dot-mt5" class="status-dot"></span> MT5</div>
+  <div class="status-item"><span id="dot-ollama" class="status-dot"></span> Ollama</div>
+  <div class="status-item"><span id="dot-telegram" class="status-dot"></span> Telegram</div>
+  <div class="status-item"><span id="dot-ws" class="status-dot"></span> WebSocket</div>
+  <div class="status-item" style="margin-left:auto;">Última exploración: <span id="last-scan">-</span></div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat-card"><div class="stat-label">Win Rate</div><div id="stat-winrate" class="stat-value green">0%</div></div>
+  <div class="stat-card"><div class="stat-label">Señales hoy</div><div id="stat-total" class="stat-value">0</div></div>
+  <div class="stat-card"><div class="stat-label">Pips ganados</div><div id="stat-pips" class="stat-value green">0</div></div>
+  <div class="stat-card"><div class="stat-label">Señales activas</div><div id="stat-active" class="stat-value">0</div></div>
+</div>
+
+<main>
+  <section class="panel">
+    <div class="panel-header">
+      <span>Señales activas</span>
+      <button class="btn" onclick="forceScan()">Forzar escaneo</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Símbolo</th><th>TF</th><th>Tipo</th><th>Setup</th>
+            <th>Entrada</th><th>TP1</th><th>TP2</th><th>TP3</th><th>SL</th>
+            <th>RR</th><th>Conf</th><th>Estado</th><th>Tiempo</th>
+          </tr>
+        </thead>
+        <tbody id="active-signals-tbody">
+          <tr><td colspan="13" style="text-align:center;color:var(--text-dim);">Sin señales activas</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-header"><span>Próximas noticias</span></div>
+    <div id="news-list">
+      <div class="news-item"><div class="news-title" style="color:var(--text-dim);">Cargando...</div></div>
+    </div>
+    <div class="panel-header" style="border-top:1px solid var(--border);"><span>Mini Chart</span></div>
+    <div class="chart-wrap">
+      <canvas id="mini-chart" width="400" height="140"></canvas>
+    </div>
+  </section>
+
+  <section class="panel history-section">
+    <div class="panel-header"><span>Historial (últimas 20)</span></div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Símbolo</th><th>TF</th><th>Tipo</th><th>Setup</th>
+            <th>Entrada</th><th>SL</th><th>TP3</th><th>RR</th><th>Conf</th>
+            <th>Estado</th><th>Pips</th><th>Abierto</th><th>Cerrado</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+          <tr><td colspan="14" style="text-align:center;color:var(--text-dim);">Sin historial</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div id="toast-container"></div>
+
+<script>
+const API = {
+  active: '/api/signals/active',
+  history: '/api/signals/history',
+  stats: '/api/stats',
+  news: '/api/news',
+  status: '/api/status',
+  forceScan: '/api/scan/force',
+};
+
+let ws = null;
+let reconnectTimer = null;
+let priceSeries = [];
+
+function setDot(id, on) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('on', !!on);
+}
+
+function fmtTime(iso) {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    return d.toISOString().substring(11, 19) + ' UTC';
+  } catch(e) { return iso; }
+}
+
+function relativeAge(iso) {
+  if (!iso) return '-';
+  const t = new Date(iso).getTime();
+  const now = Date.now();
+  const diff = Math.max(0, Math.floor((now - t) / 1000));
+  if (diff < 60) return diff + 's';
+  if (diff < 3600) return Math.floor(diff/60) + 'm';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h';
+  return Math.floor(diff/86400) + 'd';
+}
+
+function statusBadge(status) {
+  const s = (status || 'ACTIVE').toUpperCase();
+  const cls = ({
+    'ACTIVE': 'badge-active',
+    'TP1': 'badge-tp1',
+    'TP2': 'badge-tp2',
+    'TP3': 'badge-tp3',
+    'SL':  'badge-sl',
+    'CANCELLED': 'badge-cancelled'
+  })[s] || 'badge-active';
+  return `<span class="badge ${cls}">${s}</span>`;
+}
+
+function typeBadge(t) {
+  const isBuy = (t || '').toUpperCase().includes('BUY');
+  const cls = isBuy ? 'badge-buy' : 'badge-sell';
+  return `<span class="badge ${cls}">${t}</span>`;
+}
+
+function renderActive(rows) {
+  const tbody = document.getElementById('active-signals-tbody');
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--text-dim);">Sin señales activas</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.map(s => `
+    <tr>
+      <td><b>${s.symbol}</b></td>
+      <td>${s.timeframe}</td>
+      <td>${typeBadge(s.signal_type)}</td>
+      <td>${s.setup || '-'}</td>
+      <td>${s.entry}</td>
+      <td>${s.tp1}</td>
+      <td>${s.tp2}</td>
+      <td>${s.tp3}</td>
+      <td style="color:var(--red);">${s.sl}</td>
+      <td>1:${s.rr}</td>
+      <td>${s.confidence}%</td>
+      <td>${statusBadge(s.status)}</td>
+      <td>${relativeAge(s.created_at)}</td>
+    </tr>
+  `).join('');
+}
+
+function renderHistory(rows) {
+  const tbody = document.getElementById('history-tbody');
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--text-dim);">Sin historial</td></tr>';
+    return;
+  }
+  tbody.innerHTML = rows.slice(0, 20).map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.symbol}</td>
+      <td>${s.timeframe}</td>
+      <td>${typeBadge(s.signal_type)}</td>
+      <td>${s.setup || '-'}</td>
+      <td>${s.entry}</td>
+      <td>${s.sl}</td>
+      <td>${s.tp3}</td>
+      <td>1:${s.rr}</td>
+      <td>${s.confidence}%</td>
+      <td>${statusBadge(s.status)}</td>
+      <td style="color:${(s.pnl_pips||0) >= 0 ? 'var(--green)' : 'var(--red)'};">${s.pnl_pips ?? 0}</td>
+      <td>${fmtTime(s.created_at)}</td>
+      <td>${s.closed_at ? fmtTime(s.closed_at) : '-'}</td>
+    </tr>
+  `).join('');
+}
+
+function renderStats(s) {
+  document.getElementById('stat-winrate').textContent = (s.win_rate ?? 0) + '%';
+  document.getElementById('stat-total').textContent = s.total_signals ?? 0;
+  document.getElementById('stat-pips').textContent = (s.total_pips ?? 0).toFixed ? (s.total_pips).toFixed(1) : s.total_pips;
+  document.getElementById('stat-active').textContent = s.active_signals ?? 0;
+  const pipsEl = document.getElementById('stat-pips');
+  pipsEl.classList.remove('green', 'red');
+  pipsEl.classList.add((s.total_pips ?? 0) >= 0 ? 'green' : 'red');
+}
+
+function renderNews(events) {
+  const cont = document.getElementById('news-list');
+  if (!events || !events.length) {
+    cont.innerHTML = '<div class="news-item"><div class="news-title" style="color:var(--text-dim);">Sin eventos próximos</div></div>';
+    return;
+  }
+  const now = Date.now();
+  cont.innerHTML = events.slice(0, 5).map(ev => {
+    const t = new Date(ev.event_time).getTime();
+    const mins = Math.max(0, Math.round((t - now) / 60000));
+    const cd = mins >= 60 ? `${Math.floor(mins/60)}h${(mins%60).toString().padStart(2,'0')}m` : `${mins}m`;
+    const impactCls = ev.impact === 'HIGH' ? 'news-impact-high' : (ev.impact === 'MEDIUM' ? 'news-impact-medium' : '');
+    return `
+      <div class="news-item">
+        <div>
+          <div class="news-title">${ev.title || 'Evento'}</div>
+          <div class="news-meta ${impactCls}">${ev.currency || ''} · ${ev.impact || 'LOW'}</div>
+        </div>
+        <div class="news-countdown">${cd}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderStatus(st) {
+  setDot('dot-mt5', st.mt5);
+  setDot('dot-ollama', st.ollama);
+  setDot('dot-telegram', st.telegram);
+  const sb = document.getElementById('session-badge');
+  const s = (st.session || 'Off-Hours');
+  sb.textContent = 'Session: ' + s;
+  sb.className = 'session-badge ' + (
+    s.includes('Overlap') ? 'session-overlap' :
+    s.includes('London') ? 'session-london' :
+    s.includes('New York') ? 'session-newyork' :
+    s.includes('Asia') ? 'session-asia' : 'session-off'
+  );
+  document.getElementById('last-scan').textContent = st.last_scan_at ? fmtTime(st.last_scan_at) : '-';
+}
+
+function drawChart() {
+  const canvas = document.getElementById('mini-chart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+  if (priceSeries.length < 2) {
+    ctx.fillStyle = '#9aa0b4';
+    ctx.font = '12px sans-serif';
+    ctx.fillText('Esperando datos...', 10, H/2);
+    return;
+  }
+  const min = Math.min(...priceSeries);
+  const max = Math.max(...priceSeries);
+  const range = (max - min) || 1;
+  ctx.strokeStyle = '#f0a500';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  priceSeries.forEach((p, i) => {
+    const x = (i / (priceSeries.length - 1)) * (W - 20) + 10;
+    const y = H - 10 - ((p - min) / range) * (H - 20);
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  ctx.fillStyle = '#9aa0b4';
+  ctx.font = '10px sans-serif';
+  ctx.fillText(max.toFixed(2), 4, 12);
+  ctx.fillText(min.toFixed(2), 4, H - 2);
+}
+
+function pushPrice(p) {
+  if (!p || isNaN(p)) return;
+  priceSeries.push(p);
+  if (priceSeries.length > 50) priceSeries.shift();
+  drawChart();
+}
+
+function toast(signal) {
+  const cont = document.getElementById('toast-container');
+  const div = document.createElement('div');
+  const isBuy = (signal.signal_type || '').toUpperCase().includes('BUY');
+  div.className = 'toast ' + (isBuy ? 'buy' : 'sell');
+  div.innerHTML = `
+    <div class="toast-title">${isBuy ? 'BUY' : 'SELL'} ${signal.symbol} ${signal.timeframe}</div>
+    <div class="toast-body">${signal.setup} · Entry ${signal.entry} · RR 1:${signal.rr} · Conf ${signal.confidence}%</div>
+  `;
+  cont.appendChild(div);
+  setTimeout(() => { div.style.opacity = '0'; div.style.transition = 'opacity 0.5s'; }, 6000);
+  setTimeout(() => { div.remove(); }, 6700);
+}
+
+async function fetchAll() {
+  try {
+    const [a, h, s, n, st] = await Promise.all([
+      fetch(API.active).then(r => r.json()),
+      fetch(API.history).then(r => r.json()),
+      fetch(API.stats).then(r => r.json()),
+      fetch(API.news).then(r => r.json()),
+      fetch(API.status).then(r => r.json()),
+    ]);
+    renderActive(a);
+    renderHistory(h);
+    renderStats(s);
+    renderNews(n);
+    renderStatus(st);
+    if (a && a.length) {
+      const last = a[0];
+      pushPrice(parseFloat(last.entry));
+    }
+  } catch (e) {
+    console.warn('fetchAll error', e);
+  }
+}
+
+async function forceScan() {
+  try {
+    await fetch(API.forceScan);
+    await fetchAll();
+  } catch (e) { console.warn(e); }
+}
+
+function connectWS() {
+  if (ws) try { ws.close(); } catch(e) {}
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}/ws`);
+  ws.onopen = () => { setDot('dot-ws', true); };
+  ws.onclose = () => {
+    setDot('dot-ws', false);
+    if (reconnectTimer) clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(connectWS, 3000);
+  };
+  ws.onerror = () => { setDot('dot-ws', false); };
+  ws.onmessage = (ev) => {
+    try {
+      const m = JSON.parse(ev.data);
+      if (m.type === 'new_signal') {
+        toast(m.data);
+        fetchAll();
+      } else if (m.type === 'monitor_tick' || m.type === 'news_update') {
+        fetchAll();
+      }
+    } catch(e) { /* ignore */ }
+  };
+}
+
+function tickClock() {
+  document.getElementById('utc-clock').textContent =
+    new Date().toISOString().substring(11, 19) + ' UTC';
+}
+
+setInterval(tickClock, 1000);
+setInterval(fetchAll, 60000);
+setInterval(drawChart, 5000);
+
+tickClock();
+fetchAll();
+connectWS();
+</script>
+</body>
+</html>

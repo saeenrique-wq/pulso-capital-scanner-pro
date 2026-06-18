@@ -1,0 +1,17 @@
+[Unit]
+Description=Scanner PRO - Señales Telegram Pulso Capital MX
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=scanner
+WorkingDirectory=/home/scanner/scanner
+ExecStart=/usr/bin/python3 main.py
+Restart=always
+RestartSec=10
+StandardOutput=append:/home/scanner/scanner/scanner_log.txt
+StandardError=append:/home/scanner/scanner/scanner_log.txt
+
+[Install]
+WantedBy=multi-user.target

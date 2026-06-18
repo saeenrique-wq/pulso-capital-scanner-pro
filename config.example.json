@@ -1,0 +1,51 @@
+{
+  "telegram": {
+    "token": "YOUR_TELEGRAM_BOT_TOKEN",
+    "chat_id": "YOUR_TELEGRAM_CHAT_ID"
+  },
+  "ollama": {
+    "host": "http://localhost:11434",
+    "model": "llama3.2:3b",
+    "enabled": false
+  },
+  "mt5": {
+    "login": 0,
+    "password": "",
+    "server": "",
+    "enabled": true
+  },
+  "trading": {
+    "symbols": ["XAUUSD"],
+    "weekend_symbols": ["BTCUSD", "ETHUSD", "XRPUSD"],
+    "timeframes": ["M1", "M5", "M15", "H1", "H4", "D1"],
+    "atr_multiplier_sl": 1.0,
+    "atr_multiplier_tp1": 1.5,
+    "atr_multiplier_tp2": 2.5,
+    "atr_multiplier_tp3": 4.0,
+    "min_rr": 2.5,
+    "max_spread_multiplier": 2.0,
+    "max_active_signals": 3,
+    "news_buffer_hours": 2,
+    "min_confidence": 85,
+    "min_pip_target": 0,
+    "sessions": {
+      "london": {"start": "08:00", "end": "17:00", "timezone": "UTC"},
+      "new_york": {"start": "13:00", "end": "22:00", "timezone": "UTC"},
+      "asia": {"start": "00:00", "end": "09:00", "timezone": "UTC"}
+    }
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080
+  },
+  "gifs": {
+    "compra":       "https://media.giphy.com/media/3o7qDEq2bMbcbPRQ2c/giphy.gif",
+    "venta":        "https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif",
+    "tp1":          "https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif",
+    "tp2":          "https://media.giphy.com/media/g9582DNuQppxC/giphy.gif",
+    "tp3":          "https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif",
+    "sl":           "https://media.giphy.com/media/3o7TKqnN349PBUtGFy/giphy.gif",
+    "volatilidad":  "https://media.giphy.com/media/l0IykOsxLECVejOzm/giphy.gif",
+    "noticia":      "https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif"
+  }
+}
