@@ -1506,11 +1506,29 @@ class TradingScanner:
     def monitor_active_signals(self) -> None:
         now = datetime.now(timezone.utc)
         active = self.db.get_active_signals()
+        universo = {s.upper() for s in self.trading_cfg.get("symbols", [])} | \
+                   {s.upper() for s in self.trading_cfg.get("weekend_symbols", [])}
         for sig in active:
             try:
                 tf = sig.get("timeframe", "H1")
                 symbol = sig.get("symbol", "")
                 sig_id = int(sig.get("id", 0))
+
+                # 0. Símbolo retirado por completo de la configuración (ej. EURUSD
+                #    quitado del bot) — cancelar de inmediato, no esperar la edad máxima.
+                if universo and symbol.upper() not in universo:
+                    self.db.update_signal_status(
+                        sig_id, "CANCELLED",
+                        notes=f"{symbol} ya no está en la configuración del bot",
+                    )
+                    logger.info("Señal %s (%s) cancelada — símbolo retirado de config", sig_id, symbol)
+                    try:
+                        last = self.db.get_last_closed_signal(symbol)
+                        if last:
+                            self.telegram.send_result_summary(self.config, last)
+                    except Exception:
+                        pass
+                    continue
 
                 # 1. Expirar por edad máxima
                 max_age_min = self._MAX_SIGNAL_AGE_MIN.get(tf, 240)
