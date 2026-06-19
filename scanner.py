@@ -76,9 +76,30 @@ class TradingScanner:
             logger.debug("gold_macro_bias error: %s", exc)
             return "neutral", "error obteniendo DXY"
 
+    def _forex_closed_now(self) -> bool:
+        """
+        Forex/oro cierra viernes ~21:00 UTC y reabre domingo ~21:00 UTC
+        (horario estándar de la mayoría de brokers). Cripto no cierra nunca.
+        """
+        now = datetime.now(timezone.utc)
+        wd, h = now.weekday(), now.hour  # Mon=0 ... Sun=6
+        if wd == 4 and h >= 21:   # viernes desde las 21:00 UTC
+            return True
+        if wd == 5:               # sábado completo
+            return True
+        if wd == 6 and h < 21:    # domingo antes de las 21:00 UTC
+            return True
+        return False
+
     def is_weekend(self) -> bool:
-        """True sábado/domingo UTC — mercado forex/oro cerrado, cripto sigue 24/7."""
-        return datetime.now(timezone.utc).weekday() >= 5
+        """True si el mercado forex/oro está cerrado ahora — cripto sigue 24/7."""
+        return self._forex_closed_now()
+
+    def is_market_open(self, symbol: str) -> bool:
+        """Cripto: siempre abierto. Forex/oro: cerrado en el cierre de fin de semana."""
+        if symbol.upper() in {"BTCUSD", "ETHUSD", "XRPUSD"}:
+            return True
+        return not self._forex_closed_now()
 
     def _active_symbols(self) -> list[str]:
         """Lista de símbolos a escanear: oro entre semana, cripto en fin de semana."""
@@ -422,6 +443,7 @@ class TradingScanner:
             "news_summary":  news_summary,
             "session":       self.get_session_name(),
             "market_mode":   mode,
+            "market_open":   True,
         }
 
     # ---------------- Confluencia MTF ----------------
@@ -949,6 +971,9 @@ class TradingScanner:
     # ---------------- Per-symbol analysis ----------------
 
     def analyze_symbol(self, symbol: str, timeframe: str) -> dict[str, Any] | None:
+        if not self.is_market_open(symbol):
+            logger.info("%s mercado cerrado ahora — no se generan señales nuevas", symbol)
+            return None
         try:
             df = self.broker.get_ohlcv(symbol, timeframe, 250)
         except Exception as exc:
@@ -1418,6 +1443,9 @@ class TradingScanner:
         self, symbol: str, direction: str, news_explanation: str
     ) -> dict[str, Any] | None:
         """Señal de entrada rápida M5 por impulso de noticia macro."""
+        if not self.is_market_open(symbol):
+            logger.info("%s mercado cerrado ahora — sin señal de impulso de noticia", symbol)
+            return None
         try:
             df = self.broker.get_ohlcv(symbol, "M5", 100)
             if df is None or df.empty or len(df) < 20:

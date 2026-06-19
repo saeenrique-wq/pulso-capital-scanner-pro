@@ -328,6 +328,15 @@ def format_signal_message(signal: dict[str, Any]) -> str:
 
     tt = _TRADE_TYPE.get(tf, {"label": tf, "emoji": "📌", "validez": "?", "duracion": "?"})
     hora_mx = _fmt_mx_short()
+    es_cripto = symbol.upper() in {"BTCUSD", "ETHUSD", "XRPUSD"}
+    sesion = str(signal.get("session", "?"))
+    mercado_abierto = bool(signal.get("market_open", True))
+    if es_cripto:
+        mercado_txt = "🟢 Mercado: ABIERTO 24/7 (cripto)"
+    elif mercado_abierto:
+        mercado_txt = f"🟢 Mercado: ABIERTO  ·  Sesión: {sesion}"
+    else:
+        mercado_txt = "🔴 Mercado: CERRADO"
 
     if es_compra:
         header = f"🟢🟢 <b>COMPRAR — {nombre}</b> 🟢🟢"
@@ -342,6 +351,7 @@ def format_signal_message(signal: dict[str, Any]) -> str:
         f"{header}\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"{tt['emoji']} <b>{tt['label']}</b>  ·  {tf}  ·  {hora_mx}\n"
+        f"{mercado_txt}\n"
         f"\n"
         f"✅ <b>ENTRA AHORA, a precio de mercado</b>\n"
         f"📍 Precio de entrada: <code>{fmt(entry)}</code>\n"
@@ -357,7 +367,7 @@ def format_signal_message(signal: dict[str, Any]) -> str:
         f"⚖️ Por cada $1 que arriesgas (hasta el SL), puedes ganar hasta ${rr3} si llega al TP3 (RR 1:{rr3})\n"
         f"📊 Confianza del análisis: {confidence}%\n"
         f"⏳ Este tipo de señal ({tt['label']}) suele tardar <b>{tt.get('duracion','?')}</b> en desarrollarse — no esperes que llegue al TP en minutos. La iremos siguiendo y avisando aquí mismo.\n"
-        f"💡 Estos precios son del activo (oro), no de dinero — ajusta cuánto arriesgas según tu propio tamaño de posición."
+        f"💡 Estos precios son del activo ({nombre}), no de dinero — ajusta cuánto arriesgas según tu propio tamaño de posición."
         f"{noticia}"
     )
     return texto
