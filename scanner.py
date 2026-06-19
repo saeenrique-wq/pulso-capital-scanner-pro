@@ -933,13 +933,16 @@ class TradingScanner:
         if len(active) >= max_active:
             reasons.append(f"Max active signals reached ({len(active)}/{max_active})")
 
-        # Rechazar solo si hay señal ACTIVE (no TP1/TP2 que ya parcialmente cerraron)
+        # Rechazar solo si hay señal ACTIVE en el MISMO símbolo+timeframe (no TP1/TP2
+        # ya parcialmente cerradas). Antes bloqueaba por símbolo completo — con D1/H4
+        # viviendo varios días, eso dejaba sin señales nuevas a los demás timeframes.
         tf = signal.get("timeframe", "")
-        already_symbol = any(
-            s.get("symbol") == symbol and s.get("status") == "ACTIVE" for s in active
+        already_symbol_tf = any(
+            s.get("symbol") == symbol and s.get("timeframe") == tf and s.get("status") == "ACTIVE"
+            for s in active
         )
-        if already_symbol:
-            reasons.append(f"Ya existe señal activa para {symbol}")
+        if already_symbol_tf:
+            reasons.append(f"Ya existe señal activa para {symbol}/{tf}")
 
         return (len(reasons) == 0, reasons)
 
