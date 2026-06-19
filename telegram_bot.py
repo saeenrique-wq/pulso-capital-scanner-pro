@@ -279,20 +279,20 @@ _TRADE_TYPE: dict[str, dict[str, str]] = {
     "H1": {
         "label":    "SWING CORTO",
         "emoji":    "📊",
-        "duracion": "horas",
-        "validez":  "4 horas",
+        "duracion": "horas a 1 día",
+        "validez":  "8 horas",
     },
     "H4": {
         "label":    "SWING",
         "emoji":    "📈",
         "duracion": "1-3 días",
-        "validez":  "12 horas",
+        "validez":  "48 horas",
     },
     "D1": {
         "label":    "POSICIÓN",
         "emoji":    "🏦",
-        "duracion": "días a semanas",
-        "validez":  "12 horas",
+        "duracion": "días a 1-2 semanas",
+        "validez":  "7 días",
     },
 }
 
@@ -315,27 +315,26 @@ def format_signal_message(signal: dict[str, Any]) -> str:
     digits = 2 if es_oro else 5
     fmt = lambda v: f"{v:.{digits}f}"
 
-    pips_sl  = _pips(entry, sl,  symbol)
-    pips_tp1 = _pips(entry, tp1, symbol)
-    pips_tp2 = _pips(entry, tp2, symbol)
-    pips_tp3 = _pips(entry, tp3, symbol)
-    rr3 = round(pips_tp3 / pips_sl, 1) if pips_sl > 0 else 0
-
-    # Valor aprox en USD por lote estándar (100 oz) — solo para ORO
-    # 1 pip ORO (0.1 price) × 100 oz = $10 por pip
-    def _apx(pips: float) -> str:
-        if not es_oro:
+    def _pct(target: float) -> str:
+        if entry <= 0:
             return ""
-        usd = round(pips * 10)
-        return f"  <i>≈ ${usd:,}</i>"
+        pct = (target - entry) / entry * 100
+        return f"{pct:+.2f}%"
 
-    tt = _TRADE_TYPE.get(tf, {"label": tf, "emoji": "📌", "validez": "?"})
+    dist_sl  = abs(entry - sl)
+    dist_tp1 = abs(tp1 - entry)
+    dist_tp3 = abs(tp3 - entry)
+    rr3 = round(dist_tp3 / dist_sl, 1) if dist_sl > 0 else 0
+
+    tt = _TRADE_TYPE.get(tf, {"label": tf, "emoji": "📌", "validez": "?", "duracion": "?"})
     hora_mx = _fmt_mx_short()
 
     if es_compra:
-        header = f"🟢🟢 <b>COMPRA — {nombre}</b> 🟢🟢"
+        header = f"🟢🟢 <b>COMPRAR — {nombre}</b> 🟢🟢"
+        accion_signo = "+"
     else:
-        header = f"🔴🔴 <b>VENTA — {nombre}</b> 🔴🔴"
+        header = f"🔴🔴 <b>VENDER — {nombre}</b> 🔴🔴"
+        accion_signo = "-"
 
     noticia = f"\n⚠️ {news_summary}" if news_summary and "Sin noticias" not in news_summary else ""
 
@@ -344,15 +343,21 @@ def format_signal_message(signal: dict[str, Any]) -> str:
         f"━━━━━━━━━━━━━━━━━━━━━\n"
         f"{tt['emoji']} <b>{tt['label']}</b>  ·  {tf}  ·  {hora_mx}\n"
         f"\n"
-        f"📍 <b>ENTRADA:  <code>{fmt(entry)}</code></b>\n"
+        f"✅ <b>ENTRA AHORA, a precio de mercado</b>\n"
+        f"📍 Precio de entrada: <code>{fmt(entry)}</code>\n"
         f"\n"
-        f"🎯 TP1  <code>{fmt(tp1)}</code>  <b>+{pips_tp1:.0f}p</b>{_apx(pips_tp1)}\n"
-        f"🎯 TP2  <code>{fmt(tp2)}</code>  <b>+{pips_tp2:.0f}p</b>{_apx(pips_tp2)}\n"
-        f"🎯 TP3  <code>{fmt(tp3)}</code>  <b>+{pips_tp3:.0f}p</b>{_apx(pips_tp3)}  🏆\n"
-        f"🛑 SL   <code>{fmt(sl)}</code>  <b>−{pips_sl:.0f}p</b>{_apx(pips_sl)}\n"
+        f"🛑 <b>Stop Loss</b> (tu límite de pérdida):\n"
+        f"     <code>{fmt(sl)}</code>  ({_pct(sl)})\n"
+        f"\n"
+        f"🎯 <b>TP1</b> (cierra una parte aquí): <code>{fmt(tp1)}</code>  ({_pct(tp1)})\n"
+        f"🎯 <b>TP2</b> (cierra otra parte):     <code>{fmt(tp2)}</code>  ({_pct(tp2)})\n"
+        f"🎯 <b>TP3</b> (objetivo final 🏆):     <code>{fmt(tp3)}</code>  ({_pct(tp3)})\n"
         f"\n"
         f"━━━━━━━━━━━━━━━━━━━━━\n"
-        f"RR 1:{rr3}  ·  Conf {confidence}%  ·  Riesgo −{pips_sl:.0f}p → Premio +{pips_tp3:.0f}p"
+        f"⚖️ Por cada $1 que arriesgas (hasta el SL), puedes ganar hasta ${rr3} si llega al TP3 (RR 1:{rr3})\n"
+        f"📊 Confianza del análisis: {confidence}%\n"
+        f"⏳ Este tipo de señal ({tt['label']}) suele tardar <b>{tt.get('duracion','?')}</b> en desarrollarse — no esperes que llegue al TP en minutos. La iremos siguiendo y avisando aquí mismo.\n"
+        f"💡 Estos precios son del activo (oro), no de dinero — ajusta cuánto arriesgas según tu propio tamaño de posición."
         f"{noticia}"
     )
     return texto
